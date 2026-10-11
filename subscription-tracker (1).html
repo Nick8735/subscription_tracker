@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Subscription tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1ef;--card:#fff;--ink:#16223b;--mute:#5f6b7f;--line:#d9dfdc;--acc:#0f766e;--accbg:#d8efec;--warn:#b45309;--warnbg:#fdecd3;--danger:#b42318;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161f;--card:#192230;--ink:#e8edf5;--mute:#93a0b4;--line:#2a3547;--acc:#4fd1c2;--accbg:#173b3a;--warn:#f5b361;--warnbg:#3b2c14;--danger:#ff8a80}}
+:root[data-theme="dark"]{--bg:#10161f;--card:#192230;--ink:#e8edf5;--mute:#93a0b4;--line:#2a3547;--acc:#4fd1c2;--accbg:#173b3a;--warn:#f5b361;--warnbg:#3b2c14;--danger:#ff8a80}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,.big{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0}
+h1{font-size:1.5rem;font-weight:800}
+h2{font-size:1.1rem;font-weight:600;margin-bottom:10px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hero{background:var(--ink);color:var(--bg);border-radius:20px;padding:24px;display:grid;gap:16px;grid-template-columns:1.4fr 1fr}
+:root[data-theme="dark"] .hero,:root:not([data-theme="light"]) .hero{--x:1}
+.big{font-size:3.4rem;font-weight:800;line-height:1;letter-spacing:-.02em}
+.hero small{opacity:.75;display:block;margin-top:6px}
+.side{display:grid;gap:10px;align-content:center}
+.side div{border-left:3px solid var(--acc);padding-left:12px}
+.side b{font-family:"Bricolage Grotesque",sans-serif;font-size:1.4rem;display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:16px}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:.88rem;color:var(--mute)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.name{font-weight:600}
+.meta{font-size:.85rem;color:var(--mute)}
+.price{text-align:right;font-weight:600;white-space:nowrap}
+.tag{display:inline-block;font-size:.78rem;border-radius:99px;padding:1px 9px;background:var(--accbg);color:var(--acc);margin-left:6px;font-weight:500}
+.tag.soon{background:var(--warnbg);color:var(--warn)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+:root[data-theme="dark"] .primary{color:#06201e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .primary{color:#06201e}}
+.icon{padding:6px 10px;font-size:.85rem}
+.del{color:var(--danger)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%}
+.actions{display:flex;gap:8px;align-items:end}
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.empty{color:var(--mute);padding:12px 0}
+@media (max-width:640px){.hero{grid-template-columns:1fr}.big{font-size:2.8rem}.row{grid-template-columns:1fr auto}.row .btns{grid-column:1/-1}}
+.lock{min-height:80vh;display:grid;place-items:center;padding:20px 16px}.lock[hidden],.wrap[hidden]{display:none}.lock .card{width:100%;max-width:380px;margin:0}.lock form{grid-template-columns:1fr}.lock p{margin:0 0 12px;color:var(--mute)}.lmsg{color:var(--danger);font-size:.9rem;min-height:1.3em;margin:0}.link{background:none;border:0;color:var(--mute);text-decoration:underline;padding:4px;font-size:.85rem}
+</style>
+</head>
+<body>
+<section class="lock" id="lock"><div class="card"><h1 id="lockTitle" style="margin-bottom:6px">Enter your passcode</h1><p id="lockSub"></p>
+<form id="lockForm"><label>Passcode<input id="pass" type="password" autocomplete="current-password" required></label>
+<label id="pass2L">Confirm passcode<input id="pass2" type="password" autocomplete="new-password"></label>
+<p class="lmsg" id="lockMsg" role="alert"></p><button class="primary" type="submit">Unlock</button></form>
+<div style="margin-top:10px;text-align:center"><button class="link" id="forgot" type="button">Forgot passcode? Erase everything</button></div></div></section>
+<div class="wrap" id="app" hidden>
+<header><h1>Subscription tracker</h1><span><button id="lockBtn" class="icon" type="button">Lock</button> <button id="theme" class="icon" type="button" aria-label="Toggle light or dark">Light / dark</button></span></header>
+
+<section class="hero" aria-live="polite">
+  <div><div class="big" id="monthly">£0</div><small>spent on subscriptions each month</small></div>
+  <div class="side">
+    <div><b id="yearly">£0</b><span>per year</span></div>
+    <div><b id="count">0</b><span>active subscriptions</span></div>
+  </div>
+</section>
+
+<section class="card" id="soonCard" hidden>
+  <h2>Coming up in the next 7 days</h2><div id="soon"></div>
+</section>
+
+<section class="card">
+  <h2>Where it goes</h2>
+  <div class="bar" id="bar"></div><div class="legend" id="legend"></div>
+</section>
+
+<section class="card">
+  <div class="toolbar"><h2 style="margin:0">Your subscriptions</h2>
+    <label style="display:flex;align-items:center;gap:8px">Sort by
+      <select id="sort" style="width:auto"><option value="date">Next payment</option><option value="cost">Monthly cost</option><option value="name">Name</option></select></label></div>
+  <div id="list"></div>
+</section>
+
+<section class="card">
+  <h2 id="formTitle">Add a subscription</h2>
+  <form id="form" autocomplete="off">
+    <label>Name<input id="f-name" required placeholder="e.g. Spotify"></label>
+    <label>Price (£)<input id="f-price" type="number" min="0" step="0.01" required></label>
+    <label>Billed<select id="f-cycle"><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="quarterly">Every 3 months</option><option value="weekly">Weekly</option></select></label>
+    <label>Category<select id="f-cat"></select></label>
+    <label>Next payment<input id="f-date" type="date" required></label>
+    <div class="actions"><button class="primary" type="submit" id="save">Add subscription</button><button type="button" id="cancel" hidden>Cancel</button></div>
+  </form>
+</section>
+
+<section class="card">
+  <div class="toolbar"><span class="meta">Saved in this browser only. Prices shown are estimates, so check each one against your bank statement.</span>
+  <button type="button" id="reset" class="icon del">Reset to starter list</button></div>
+</section>
+</div>
+
+<script>
+const CATS={Streaming:"#0f766e",Fitness:"#d97706",Insurance:"#4f46e5",Shopping:"#be185d",Utilities:"#0284c7",Other:"#6b7280"};
+const KEY="subs-tracker-v1";
+const fmt=n=>"£"+n.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+const iso=d=>d.toISOString().slice(0,10);
+const inDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const starter=()=>[
+ {id:1,name:"Netflix",price:10.99,cycle:"monthly",cat:"Streaming",date:inDays(5)},
+ {id:2,name:"Disney+",price:7.99,cycle:"monthly",cat:"Streaming",date:inDays(12)},
+ {id:3,name:"Amazon Prime",price:8.99,cycle:"monthly",cat:"Shopping",date:inDays(18)},
+ {id:4,name:"Crunchyroll",price:5.99,cycle:"monthly",cat:"Streaming",date:inDays(9)},
+ {id:5,name:"Gym",price:25,cycle:"monthly",cat:"Fitness",date:inDays(2)},
+ {id:6,name:"British Gas insurance",price:15,cycle:"monthly",cat:"Insurance",date:inDays(21)}
+];
+let subs,editing=null;
+try{const s=localStorage.getItem(KEY);subs=s?JSON.parse(s):null}catch(e){subs=null}
+if(!Array.isArray(subs))subs=starter();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(subs))}catch(e){}};
+const monthly=s=>({monthly:1,yearly:1/12,quarterly:1/3,weekly:52/12})[s.cycle]*s.price;
+const step=(d,c)=>{const x=new Date(d+"T12:00:00");if(c==="monthly")x.setMonth(x.getMonth()+1);else if(c==="yearly")x.setFullYear(x.getFullYear()+1);else if(c==="quarterly")x.setMonth(x.getMonth()+3);else x.setDate(x.getDate()+7);return iso(x)};
+const nextDate=s=>{let d=s.date;const t=iso(new Date());let g=0;while(d<t&&g++<500)d=step(d,s.cycle);return d};
+const daysTo=d=>Math.round((new Date(d+"T12:00:00")-new Date(iso(new Date())+"T12:00:00"))/864e5);
+const when=n=>n===0?"today":n===1?"tomorrow":"in "+n+" days";
+const cycleLabel={monthly:"month",yearly:"year",quarterly:"3 months",weekly:"week"};
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+
+function render(){
+  const tot=subs.reduce((a,s)=>a+monthly(s),0);
+  $("monthly").textContent=fmt(tot);$("yearly").textContent=fmt(tot*12);$("count").textContent=subs.length;
+  // categories
+  const by={};subs.forEach(s=>by[s.cat]=(by[s.cat]||0)+monthly(s));
+  const ents=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  $("bar").innerHTML=ents.map(([c,v])=>`<div title="${c}" style="width:${tot?v/tot*100:0}%;background:${CATS[c]||CATS.Other}"></div>`).join("");
+  $("legend").innerHTML=ents.length?ents.map(([c,v])=>`<span><i class="dot" style="background:${CATS[c]||CATS.Other}"></i>${c} ${fmt(v)}/mo</span>`).join(""):"Add a subscription to see the split.";
+  // upcoming
+  const up=subs.map(s=>({s,d:nextDate(s)})).filter(x=>daysTo(x.d)<=7).sort((a,b)=>a.d<b.d?-1:1);
+  $("soonCard").hidden=!up.length;
+  $("soon").innerHTML=up.map(({s,d})=>`<div class="row"><span class="name">${esc(s.name)}</span><span class="meta">${when(daysTo(d))}</span><span class="price">${fmt(s.price)}</span></div>`).join("");
+  // list
+  const sort=$("sort").value;
+  const arr=subs.map(s=>({s,d:nextDate(s)}));
+  arr.sort((a,b)=>sort==="cost"?monthly(b.s)-monthly(a.s):sort==="name"?a.s.name.localeCompare(b.s.name):(a.d<b.d?-1:1));
+  $("list").innerHTML=arr.length?arr.map(({s,d})=>{const n=daysTo(d);return `<div class="row">
+    <div><span class="name">${esc(s.name)}</span><span class="tag">${s.cat}</span>${n<=7?`<span class="tag soon">${when(n)}</span>`:""}
+    <div class="meta">Next payment ${new Date(d+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div></div>
+    <div class="price">${fmt(s.price)}<div class="meta">per ${cycleLabel[s.cycle]}${s.cycle!=="monthly"?" · "+fmt(monthly(s))+"/mo":""}</div></div>
+    <div class="btns"><button class="icon" data-edit="${s.id}" type="button">Edit</button> <button class="icon del" data-del="${s.id}" type="button">Delete</button></div></div>`}).join(""):`<div class="empty">No subscriptions yet. Add your first one below.</div>`;
+}
+$("f-cat").innerHTML=Object.keys(CATS).map(c=>`<option>${c}</option>`).join("");
+$("f-date").value=inDays(30);
+function clearForm(){editing=null;$("form").reset();$("f-date").value=inDays(30);$("formTitle").textContent="Add a subscription";$("save").textContent="Add subscription";$("cancel").hidden=true}
+$("form").addEventListener("submit",e=>{
+  e.preventDefault();
+  const o={name:$("f-name").value.trim(),price:parseFloat($("f-price").value)||0,cycle:$("f-cycle").value,cat:$("f-cat").value,date:$("f-date").value};
+  if(!o.name)return;
+  if(editing){subs=subs.map(s=>s.id===editing?{...s,...o}:s)}else{subs.push({id:Date.now(),...o})}
+  save();clearForm();render();
+});
+$("cancel").onclick=clearForm;
+$("sort").onchange=render;
+$("list").addEventListener("click",e=>{
+  const d=e.target.dataset;
+  if(d.del){const s=subs.find(x=>x.id==d.del);if(s&&confirm("Delete "+s.name+"?")){subs=subs.filter(x=>x.id!=d.del);save();render()}}
+  if(d.edit){const s=subs.find(x=>x.id==d.edit);if(!s)return;editing=s.id;
+    $("f-name").value=s.name;$("f-price").value=s.price;$("f-cycle").value=s.cycle;$("f-cat").value=s.cat;$("f-date").value=nextDate(s);
+    $("formTitle").textContent="Edit "+s.name;$("save").textContent="Save changes";$("cancel").hidden=false;$("form").scrollIntoView({behavior:"smooth"});$("f-name").focus()}
+});
+$("reset").onclick=()=>{if(confirm("Replace your list with the starter list?")){subs=starter();save();clearForm();render()}};
+$("theme").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=dark?"light":"dark"};
+render();
+/* passcode lock */
+const LK="subs-lock-v1";
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function derive(pw,salt){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);return b64(await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},k,256))}
+let lock=null;try{lock=JSON.parse(localStorage.getItem(LK))}catch(e){}
+function showLock(){$("app").hidden=true;$("lock").hidden=false;$("lockMsg").textContent="";
+ $("lockTitle").textContent=lock?"Enter your passcode":"Set a passcode";
+ $("lockSub").textContent=lock?"Your subscriptions are locked.":"Choose a passcode of at least 4 characters to keep this tracker private.";
+ $("pass2L").hidden=!!lock;$("pass2").required=!lock;$("pass").value="";$("pass2").value="";$("pass").focus()}
+function unlock(){$("lock").hidden=true;$("app").hidden=false;render()}
+$("lockForm").addEventListener("submit",async e=>{e.preventDefault();const p=$("pass").value,m=$("lockMsg");
+ try{
+  if(lock){if(await derive(p,unb(lock.salt))===lock.hash)unlock();else{m.textContent="That passcode is not right. Try again.";$("pass").value=""}}
+  else{if(p.length<4){m.textContent="Use at least 4 characters.";return}
+   if(p!==$("pass2").value){m.textContent="The two passcodes do not match.";return}
+   const salt=crypto.getRandomValues(new Uint8Array(16));lock={salt:b64(salt),hash:await derive(p,salt)};
+   try{localStorage.setItem(LK,JSON.stringify(lock))}catch(e){}unlock()}
+ }catch(err){m.textContent="Passcode lock is not supported in this browser."}});
+$("lockBtn").onclick=showLock;
+$("forgot").onclick=()=>{if(confirm("This erases your passcode and all saved subscriptions. Continue?")){try{localStorage.removeItem(LK);localStorage.removeItem(KEY)}catch(e){}lock=null;subs=starter();showLock()}};
+showLock();
+</script>
+</body>
+</html>
